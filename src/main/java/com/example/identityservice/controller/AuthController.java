@@ -1,7 +1,6 @@
 package com.example.identityservice.controller;
 
-import com.example.identityservice.dto.RegisterRequest;
-import com.example.identityservice.dto.UserResponse;
+import com.example.identityservice.dto.*;
 import com.example.identityservice.entity.User;
 import com.example.identityservice.service.AuthService;
 import com.example.identityservice.util.JwtUtil;
@@ -23,19 +22,24 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
-        UserResponse response = authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
     }
 
     /**
-     * API test: trả về JWT cho một user đã tồn tại trong DB
-     * GET /api/auth/test-token?username=nguyenvana
+     * POST /api/auth/login
+     * Body: { "username": "...", "password": "..." }
+     * Response 200: { accessToken, tokenType, expiresIn, username, role }
+     * Response 401: { "error": "Bad credentials", "status": 401 }
      */
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
+    }
+
     @GetMapping("/test-token")
     public ResponseEntity<Map<String, Object>> testToken(@RequestParam String username) {
         User user = authService.findByUsername(username);
         String token = jwtUtil.generateToken(user);
-
         return ResponseEntity.ok(Map.of(
                 "username", user.getUsername(),
                 "role", user.getRole(),
